@@ -6,7 +6,8 @@ import sys
 
 from orchestrator import Orchestrator
 from agents import create_default_agents
-from database import init_database
+from database import init_database, DB_PATH
+from pathlib import Path
 
 
 def parse_args():
@@ -28,6 +29,12 @@ def parse_args():
         help="Random seed for deterministic runs (default: 42)"
     )
 
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Delete existing database before running simulation"
+    )
+
     return parser.parse_args()
 
 
@@ -44,6 +51,13 @@ def main():
     print(f"\n=== botField v0.1 ===")
     print(f"Steps: {args.steps}")
     print(f"Seed:  {args.seed}\n")
+
+    
+    # Optional reset
+    if args.reset:
+        if Path(DB_PATH).exists():
+            print("Resetting database...")
+            Path(DB_PATH).unlink()
 
     # Initialize database
     db = init_database()
