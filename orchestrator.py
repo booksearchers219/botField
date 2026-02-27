@@ -27,7 +27,9 @@ class Orchestrator:
             tick=self.tick,
             agent_id=agent.id,
             action_type="AGENT_SELECTED",
-            metadata=agent.name
+            metadata={
+                "agent_name": agent.name
+            }
         )
 
         context = self.get_context()
@@ -40,7 +42,9 @@ class Orchestrator:
             tick=self.tick,
             agent_id=agent.id,
             action_type="ACTION_DECIDED",
-            metadata=action
+            metadata={
+                "decision": action
+            }
         )
 
         if action == "post":
@@ -68,7 +72,10 @@ class Orchestrator:
             tick=self.tick,
             agent_id=agent.id,
             action_type="POST_CREATED",
-            metadata=f"post_id={post_id}"
+            metadata={
+                "post_id": post_id,
+                "content_length": len(content)
+            }
         )
 
     def log_idle(self, agent):
@@ -77,5 +84,7 @@ class Orchestrator:
             tick=self.tick,
             agent_id=agent.id,
             action_type="AGENT_IDLE",
-            metadata=None
+            metadata={
+                "reason": "probability_check_failed"
+            }
         )

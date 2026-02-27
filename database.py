@@ -1,6 +1,7 @@
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+import json
 
 DB_PATH = Path("botfield.db")
 
@@ -87,6 +88,10 @@ def get_recent_posts(conn, limit=5):
 
 def insert_event(conn, tick, agent_id, action_type, metadata=None):
     cursor = conn.cursor()
+
+    if metadata is not None:
+        metadata = json.dumps(metadata)
+
     cursor.execute(
         """
         INSERT INTO events (tick, agent_id, action_type, metadata, created_at)
@@ -94,8 +99,8 @@ def insert_event(conn, tick, agent_id, action_type, metadata=None):
         """,
         (tick, agent_id, action_type, metadata, timestamp())
     )
-    conn.commit()
 
+    conn.commit()
 
 # ---------- Utilities ----------
 
