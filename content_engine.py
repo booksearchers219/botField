@@ -28,24 +28,53 @@ class RuleBasedContentEngine:
 
 class OllamaContentEngine:
     """
-    Simple Ollama-powered content generator.
+    Ollama-powered content generator supporting posts and replies.
     """
 
     def generate_post(self, agent, tick, context):
         import subprocess
 
-        prompt = f"""
-        You are {agent.name}.
-        Your personality type is: {agent.voice}.
+        # Determine if this is a reply
+        if context:
+            first = context[0]
+            try:
+                target_text = first["content"]
+            except Exception:
+                target_text = str(first)
 
-        Write a short, calm, thoughtful social post (1-2 sentences).
-        Do not use emojis.
-        Do not use hashtags.
-        Do not use all caps.
-        Do not exaggerate.
-        Keep it natural and realistic.
-        Only output the post text.
-        """
+            prompt = f"""
+You are {agent.name}, a {agent.voice} personality.
+
+You are replying to this post:
+{target_text}
+
+Write a short natural reply (1-2 sentences).
+
+Rules:
+- Respond directly to the post.
+- Do NOT explain what you are doing.
+- Do NOT say "Here is".
+- Do NOT say "Sure".
+- Do NOT add quotation marks.
+- Output ONLY the reply text.
+- No emojis.
+- No hashtags.
+"""
+        else:
+            prompt = f"""
+You are {agent.name}, a {agent.voice} personality.
+
+Write exactly one short social media post (1-2 sentences).
+
+Rules:
+- Do NOT explain what you are doing.
+- Do NOT say "Here is".
+- Do NOT say "Sure".
+- Do NOT add quotation marks.
+- Output ONLY the post text.
+- No emojis.
+- No hashtags.
+"""
 
         try:
             result = subprocess.run(

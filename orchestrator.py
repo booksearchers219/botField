@@ -95,9 +95,8 @@ class Orchestrator:
         reply_content = self.content_engine.generate_post(
             agent=agent,
             tick=self.tick,
-            context=context
+            context=[target]  # only pass the post being replied to
         )
-
         content = f"RE: {reply_content}"
 
         post_id = insert_post(

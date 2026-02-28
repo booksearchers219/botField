@@ -14,10 +14,10 @@ class Agent:
 
         r = random.random()
 
-        # 50% of post probability becomes replies if context exists
         if r < self.post_probability:
             if context:
-                return random.choice(["post", "reply"])
+                # 70% replies when context exists
+                return "reply" if random.random() < 0.7 else "post"
             return "post"
 
         return "idle"
