@@ -10,8 +10,16 @@ class Agent:
         self.voice = voice
 
     def decide_action(self, context):
-        if random.random() < self.post_probability:
+        import random
+
+        r = random.random()
+
+        # 50% of post probability becomes replies if context exists
+        if r < self.post_probability:
+            if context:
+                return random.choice(["post", "reply"])
             return "post"
+
         return "idle"
 
     def generate_post(self, tick):

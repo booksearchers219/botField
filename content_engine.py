@@ -34,7 +34,18 @@ class OllamaContentEngine:
     def generate_post(self, agent, tick, context):
         import subprocess
 
-        prompt = f"You are {agent.name}, a {agent.voice} personality. Write a short 1-2 sentence social media post."
+        prompt = f"""
+        You are {agent.name}.
+        Your personality type is: {agent.voice}.
+
+        Write a short, calm, thoughtful social post (1-2 sentences).
+        Do not use emojis.
+        Do not use hashtags.
+        Do not use all caps.
+        Do not exaggerate.
+        Keep it natural and realistic.
+        Only output the post text.
+        """
 
         try:
             result = subprocess.run(

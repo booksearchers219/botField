@@ -45,6 +45,8 @@ class Orchestrator:
 
         if action == "post":
             self.create_post(agent)
+        elif action == "reply":
+            self.create_reply(agent)
         else:
             self.log_idle(agent)
 
@@ -72,16 +74,50 @@ class Orchestrator:
             tick=self.tick,
             agent_id=agent.id,
             action_type="POST_CREATED",
-            metadata={
-                "post_id": post_id,
-                "content_length": len(content)
-            }
+            metadata={"post_id": post_id}
         )
 
         if self.verbose:
             print(f"\n[Tick {self.tick}] NEW POST")
             print(f"  Author: {agent.name}")
-            print(f"  Post ID: {post_id}")
+            print(f"  Content: {content}")
+            self.print_feed()
+
+    def create_reply(self, agent):
+        context = self.get_context()
+
+        if not context:
+            self.log_idle(agent)
+            return
+
+        target = context[-1]
+
+        reply_content = self.content_engine.generate_post(
+            agent=agent,
+            tick=self.tick,
+            context=context
+        )
+
+        content = f"RE: {reply_content}"
+
+        post_id = insert_post(
+            self.db,
+            author_id=agent.id,
+            content=content
+        )
+
+        insert_event(
+            self.db,
+            tick=self.tick,
+            agent_id=agent.id,
+            action_type="REPLY_CREATED",
+            metadata={"post_id": post_id}
+        )
+
+        if self.verbose:
+            print(f"\n[Tick {self.tick}] REPLY")
+            print(f"  Author: {agent.name}")
+            print(f"  Reply To: {target['content']}")
             print(f"  Content: {content}")
             self.print_feed()
 
