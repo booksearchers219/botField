@@ -3,42 +3,50 @@ from database import insert_agent
 
 
 class Agent:
-    def __init__(self, agent_id, name, post_probability):
+    def __init__(self, agent_id, name, post_probability, voice):
         self.id = agent_id
         self.name = name
         self.post_probability = post_probability
+        self.voice = voice
 
     def decide_action(self, context):
-        """
-        context: list of recent posts (unused in v0.1)
-        returns: "post" or "idle"
-        """
-        roll = random.random()
-
-        if roll < self.post_probability:
+        if random.random() < self.post_probability:
             return "post"
-
         return "idle"
 
+    def generate_post(self, tick):
+        templates = {
+            "noisy": [
+                "I can't believe it's already tick {tick}. Things are moving fast.",
+                "Another thought at tick {tick}: momentum matters.",
+                "Tick {tick} and still pushing forward.",
+            ],
+            "balanced": [
+                "Tick {tick}. Observing before acting.",
+                "Steady progress at tick {tick}.",
+                "Tick {tick}. Balance is everything.",
+            ],
+            "passive": [
+                "Tick {tick}. Just watching.",
+                "Quiet thoughts at tick {tick}.",
+                "Still here at tick {tick}.",
+            ]
+        }
+
+        options = templates[self.voice]
+        return random.choice(options).format(tick=tick)
 
 def create_default_agents(conn):
-    """
-    Creates three baseline agents:
-    - Passive (10% post chance)
-    - Balanced (50% post chance)
-    - Noisy (80% post chance)
-    """
-
     agents = []
 
     configs = [
-        ("PassiveAgent", 0.10),
-        ("BalancedAgent", 0.50),
-        ("NoisyAgent", 0.80),
+        ("PassiveAgent", 0.10, "passive"),
+        ("BalancedAgent", 0.50, "balanced"),
+        ("NoisyAgent", 0.80, "noisy"),
     ]
 
-    for name, probability in configs:
+    for name, probability, voice in configs:
         agent_id = insert_agent(conn, name)
-        agents.append(Agent(agent_id, name, probability))
+        agents.append(Agent(agent_id, name, probability, voice))
 
     return agents

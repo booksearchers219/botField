@@ -48,7 +48,7 @@ class Orchestrator:
         return get_recent_posts(self.db, limit=5)
 
     def create_post(self, agent):
-        content = f"Tick {self.tick}: Post from {agent.name}"
+        content = agent.generate_post(self.tick)
 
         post_id = insert_post(
             self.db,
@@ -73,6 +73,9 @@ class Orchestrator:
             print(f"  Post ID: {post_id}")
             print(f"  Content: {content}")
 
+            # Optional: print feed after each new post
+            self.print_feed()
+
     def log_idle(self, agent):
         insert_event(
             self.db,
@@ -84,6 +87,22 @@ class Orchestrator:
 
         if self.verbose:
             print(f"[Tick {self.tick}] {agent.name} -> idle")
+
+    def print_feed(self):
+        cursor = self.db.cursor()
+        rows = cursor.execute(
+            """
+            SELECT posts.id, agents.name, posts.content
+            FROM posts
+            JOIN agents ON posts.author_id = agents.id
+            ORDER BY posts.id
+            """
+        ).fetchall()
+
+        print("\n--- CURRENT FEED ---")
+        for post_id, name, content in rows:
+            print(f"{post_id} | {name} | {content}")
+        print("--------------------")
 
     def print_summary(self):
         cursor = self.db.cursor()

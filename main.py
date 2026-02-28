@@ -3,11 +3,11 @@
 import argparse
 import random
 import sys
+from pathlib import Path
 
 from orchestrator import Orchestrator
 from agents import create_default_agents
 from database import init_database, DB_PATH
-from pathlib import Path
 
 
 def parse_args():
@@ -35,6 +35,12 @@ def parse_args():
         help="Delete existing database before running simulation"
     )
 
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="Print tick activity to console"
+    )
+
     return parser.parse_args()
 
 
@@ -52,7 +58,6 @@ def main():
     print(f"Steps: {args.steps}")
     print(f"Seed:  {args.seed}\n")
 
-    
     # Optional reset
     if args.reset:
         if Path(DB_PATH).exists():
@@ -66,16 +71,17 @@ def main():
     agents = create_default_agents(db)
 
     # Create orchestrator
-    orchestrator = Orchestrator(agents=agents, db=db)
+    orchestrator = Orchestrator(
+        agents=agents,
+        db=db,
+        verbose=args.verbose
+    )
 
     # Run simulation
     orchestrator.run(steps=args.steps)
-
+    orchestrator.print_summary()
     print("\nSimulation complete.\n")
 
 
 if __name__ == "__main__":
     main()
-
-
-
