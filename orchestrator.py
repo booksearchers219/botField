@@ -1,17 +1,13 @@
 import random
-
-from database import (
-    insert_post,
-    insert_event,
-    get_recent_posts,
-)
+from database import insert_post, insert_event, get_recent_posts
 
 
 class Orchestrator:
-    def __init__(self, agents, db):
+    def __init__(self, agents, db, verbose=False):
         self.agents = agents
         self.db = db
         self.tick = 0
+        self.verbose = verbose
 
     def run(self, steps: int):
         for _ in range(steps):
@@ -21,31 +17,27 @@ class Orchestrator:
     def process_tick(self):
         agent = self.pick_agent()
 
-        # Log agent selection
         insert_event(
             self.db,
             tick=self.tick,
             agent_id=agent.id,
             action_type="AGENT_SELECTED",
-            metadata={
-                "agent_name": agent.name
-            }
+            metadata={"agent_name": agent.name}
         )
 
         context = self.get_context()
-
         action = agent.decide_action(context)
 
-        # Log decision
         insert_event(
             self.db,
             tick=self.tick,
             agent_id=agent.id,
             action_type="ACTION_DECIDED",
-            metadata={
-                "decision": action
-            }
+            metadata={"decision": action}
         )
+
+        if self.verbose:
+            print(f"[Tick {self.tick}] {agent.name} -> {action}")
 
         if action == "post":
             self.create_post(agent)
@@ -78,13 +70,14 @@ class Orchestrator:
             }
         )
 
+        if self.verbose:
+            print(f"    Created post_id={post_id}")
+
     def log_idle(self, agent):
         insert_event(
             self.db,
             tick=self.tick,
             agent_id=agent.id,
             action_type="AGENT_IDLE",
-            metadata={
-                "reason": "probability_check_failed"
-            }
+            metadata={"reason": "probability_check_failed"}
         )
