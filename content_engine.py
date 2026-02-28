@@ -1,3 +1,6 @@
+import re
+
+
 class RuleBasedContentEngine:
     """
     Deterministic rule-based content generator.
@@ -29,6 +32,7 @@ class RuleBasedContentEngine:
 class OllamaContentEngine:
     """
     Ollama-powered content generator supporting posts and replies.
+    Includes output sanitization.
     """
 
     def generate_post(self, agent, tick, context):
@@ -92,6 +96,30 @@ Rules:
 
             if not response:
                 return f"{agent.name} is thinking..."
+
+            # -----------------------------
+            # 🔧 Output Sanitization Layer
+            # -----------------------------
+
+            # Remove surrounding quotes
+            response = response.strip('"').strip("'")
+
+            # Remove emojis (basic unicode emoji ranges)
+            response = re.sub(r'[\U00010000-\U0010ffff]', '', response)
+
+            # Remove hashtags
+            response = re.sub(r'#\w+', '', response)
+
+            # Remove common meta phrases
+            response = re.sub(
+                r'^(Sure[, ]*|Here is[, ]*)',
+                '',
+                response,
+                flags=re.IGNORECASE
+            )
+
+            # Collapse whitespace
+            response = " ".join(response.split())
 
             return response
 
