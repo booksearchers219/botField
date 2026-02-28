@@ -1,5 +1,6 @@
 import random
 from database import insert_post, insert_event, get_recent_posts
+from content_engine import RuleBasedContentEngine
 
 
 class Orchestrator:
@@ -8,6 +9,7 @@ class Orchestrator:
         self.db = db
         self.tick = 0
         self.verbose = verbose
+        self.content_engine = RuleBasedContentEngine()
 
     def run(self, steps: int):
         for _ in range(steps):
@@ -48,7 +50,11 @@ class Orchestrator:
         return get_recent_posts(self.db, limit=5)
 
     def create_post(self, agent):
-        content = agent.generate_post(self.tick)
+        content = self.content_engine.generate_post(
+        agent=agent,
+        tick=self.tick,
+        context=self.get_context()
+        )
 
         post_id = insert_post(
             self.db,
