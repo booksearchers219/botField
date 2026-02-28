@@ -1,7 +1,6 @@
 class RuleBasedContentEngine:
     """
     Deterministic rule-based content generator.
-    This replaces hardcoded content generation in Agent.
     """
 
     def generate_post(self, agent, tick, context):
@@ -29,9 +28,34 @@ class RuleBasedContentEngine:
 
 class OllamaContentEngine:
     """
-    Placeholder for future Ollama-powered content generation.
-    Currently returns a simple LLM mode placeholder.
+    Simple Ollama-powered content generator.
     """
 
     def generate_post(self, agent, tick, context):
-        return f"[LLM MODE] {agent.name} thinking at tick {tick}..."
+        import subprocess
+
+        prompt = f"You are {agent.name}, a {agent.voice} personality. Write a short 1-2 sentence social media post."
+
+        try:
+            result = subprocess.run(
+                ["ollama", "run", "llama2"],
+                input=prompt,
+                text=True,
+                capture_output=True,
+                timeout=60
+            )
+
+            if result.returncode != 0:
+                return f"[LLM ERROR] {agent.name} failed to generate post."
+
+            response = result.stdout.strip()
+
+            if not response:
+                return f"{agent.name} is thinking..."
+
+            return response
+
+        except subprocess.TimeoutExpired:
+            return f"[LLM TIMEOUT] {agent.name} took too long."
+        except Exception as e:
+            return f"[LLM EXCEPTION] {str(e)}"
