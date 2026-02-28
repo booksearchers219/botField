@@ -25,3 +25,13 @@ class RuleBasedContentEngine:
 
         options = templates[agent.voice]
         return options[tick % len(options)].format(tick=tick)
+
+
+class OllamaContentEngine:
+    """
+    Placeholder for future Ollama-powered content generation.
+    Currently returns a simple LLM mode placeholder.
+    """
+
+    def generate_post(self, agent, tick, context):
+        return f"[LLM MODE] {agent.name} thinking at tick {tick}..."

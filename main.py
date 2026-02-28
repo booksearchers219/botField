@@ -40,6 +40,11 @@ def parse_args():
         action="store_true",
         help="Print tick activity to console"
     )
+    parser.add_argument(
+        "--llm",
+        action="store_true",
+        help="Use Ollama content engine"
+    )
 
     return parser.parse_args()
 
@@ -74,7 +79,8 @@ def main():
     orchestrator = Orchestrator(
         agents=agents,
         db=db,
-        verbose=args.verbose
+        verbose=args.verbose,
+        use_llm=args.llm
     )
 
     # Run simulation

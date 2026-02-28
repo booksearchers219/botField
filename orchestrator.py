@@ -1,15 +1,20 @@
 import random
 from database import insert_post, insert_event, get_recent_posts
-from content_engine import RuleBasedContentEngine
+from content_engine import RuleBasedContentEngine, OllamaContentEngine
 
 
 class Orchestrator:
-    def __init__(self, agents, db, verbose=False):
+    def __init__(self, agents, db, verbose=False, use_llm=False):
         self.agents = agents
         self.db = db
         self.tick = 0
         self.verbose = verbose
-        self.content_engine = RuleBasedContentEngine()
+        self.use_llm = use_llm
+
+        if self.use_llm:
+            self.content_engine = OllamaContentEngine()
+        else:
+            self.content_engine = RuleBasedContentEngine()
 
     def run(self, steps: int):
         for _ in range(steps):
@@ -51,9 +56,9 @@ class Orchestrator:
 
     def create_post(self, agent):
         content = self.content_engine.generate_post(
-        agent=agent,
-        tick=self.tick,
-        context=self.get_context()
+            agent=agent,
+            tick=self.tick,
+            context=self.get_context()
         )
 
         post_id = insert_post(
@@ -78,8 +83,6 @@ class Orchestrator:
             print(f"  Author: {agent.name}")
             print(f"  Post ID: {post_id}")
             print(f"  Content: {content}")
-
-            # Optional: print feed after each new post
             self.print_feed()
 
     def log_idle(self, agent):
