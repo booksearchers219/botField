@@ -36,9 +36,6 @@ class Orchestrator:
             metadata={"decision": action}
         )
 
-        if self.verbose:
-            print(f"[Tick {self.tick}] {agent.name} -> {action}")
-
         if action == "post":
             self.create_post(agent)
         else:
@@ -71,7 +68,10 @@ class Orchestrator:
         )
 
         if self.verbose:
-            print(f"    Created post_id={post_id}")
+            print(f"\n[Tick {self.tick}] NEW POST")
+            print(f"  Author: {agent.name}")
+            print(f"  Post ID: {post_id}")
+            print(f"  Content: {content}")
 
     def log_idle(self, agent):
         insert_event(
@@ -81,3 +81,44 @@ class Orchestrator:
             action_type="AGENT_IDLE",
             metadata={"reason": "probability_check_failed"}
         )
+
+        if self.verbose:
+            print(f"[Tick {self.tick}] {agent.name} -> idle")
+
+    def print_summary(self):
+        cursor = self.db.cursor()
+
+        total_events = cursor.execute(
+            "SELECT COUNT(*) FROM events"
+        ).fetchone()[0]
+
+        total_posts = cursor.execute(
+            "SELECT COUNT(*) FROM posts"
+        ).fetchone()[0]
+
+        idle_count = cursor.execute(
+            "SELECT COUNT(*) FROM events WHERE action_type='AGENT_IDLE'"
+        ).fetchone()[0]
+
+        print("\n--- Run Summary ---")
+        print(f"Total ticks: {self.tick}")
+        print(f"Total events: {total_events}")
+        print(f"Total posts: {total_posts}")
+        print(f"Total idle events: {idle_count}")
+
+        print("\nPosts per agent:")
+
+        rows = cursor.execute(
+            """
+            SELECT agents.name, COUNT(posts.id)
+            FROM agents
+            LEFT JOIN posts ON agents.id = posts.author_id
+            GROUP BY agents.name
+            """
+        ).fetchall()
+
+        for name, count in rows:
+            print(f"  {name}: {count}")
+
+        post_rate = (total_posts / self.tick) * 100 if self.tick else 0
+        print(f"\nPost rate: {post_rate:.2f}%")
